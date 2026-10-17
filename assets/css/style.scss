@@ -22,11 +22,11 @@
 */
 
 // Imports
-@import "variables";
-@import "reset";
-@import "general";
-@import "structure";
-@import "header";
-@import "content";
-@import "footer";
-@import "media-queries";
+@use "variables";
+@use "reset";
+@use "general";
+@use "structure";
+@use "header";
+@use "content";
+@use "footer";
+@use "media-queries";
