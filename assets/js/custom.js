@@ -1,115 +1,72 @@
 /**
  * Main JS file for theme behaviours
  */
-(function ($) {
-  "use strict";
+const body = document.body;
+const menuToggle = document.getElementById("menu-toggle");
+const toTop = document.getElementById("back-to-top");
+const canvas = document.createElement("canvas");
+let toTopShown = false;
 
-  var $window = $(window),
-      $body = $('body'),
-      $menuToggle = $('#menu-toggle'),
-      $toTop = $('#back-to-top'),
-      mobile = false;
+// Menu on small screens
+menuToggle.addEventListener("click", event => {
+  body.classList.toggle("menu--opened");
+  menuToggle.blur();
+  event.preventDefault();
+});
 
-  $(document).ready(function(){
+// Back to top button
+toTop.addEventListener("click", event => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  event.preventDefault();
+});
 
-    // Detect mobile
-    isMobile();
+addEventListener("resize", update);
+addEventListener("orientationchange", update);
+addEventListener("scroll", update, { passive: true });
+update();
 
-    // Responsive video embeds
-    $('.post-content').fitVids();
+function update() {
+  if (getComputedStyle(menuToggle).display !== "none") return drawProgress();
+  body.classList.remove("menu--opened");
+  toTopShown = false;
+  toTop.style.display = "none";
+  canvas.remove();
+}
 
-    // Menu on small screens
-    $menuToggle.on('click', function(e){
-      $body.toggleClass('menu--opened');
-      $menuToggle.blur();
-      e.preventDefault();
-    });
-    $window.on('resize orientationchange', function() {
-      isMobile();
-      if (mobile === false) {
-        $body.removeClass('menu--opened');
-      }
-    });
+function drawProgress() {
+  const scrollable = document.documentElement.scrollHeight - innerHeight;
+  const progress = Math.ceil((scrollY / scrollable) * 10000) / 10000;
+  if (progress < 0.1) return showToTop(false);
+  showToTop(true);
+  const size = parseFloat(getComputedStyle(toTop).height);
+  const radius = (size - 2) / 2;
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.height = size;
+  ctx.translate(size / 2, size / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  stroke("#eee", Math.PI * 2);
+  stroke("#d4a259", Math.PI * 2 * progress);
+  if (!canvas.isConnected) toTop.append(canvas);
 
-    // Back to top button
-    if (mobile === true) {
-      $toTop.initCanvas();
-    }
-    $toTop.on('click', function(e) {
-      $('html, body').animate({'scrollTop': 0});
-      e.preventDefault();
-    });
-    $window.on('resize scroll', function () {
-      if (mobile === true) {
-        $toTop.initCanvas();
-      } else {
-        $toTop.hide();
-        $toTop.find('canvas').remove();
-      }
-    });
-
-  });
-
-  function isMobile() {
-    if ( $menuToggle.is(':hidden') ) {
-      mobile = false;
-    } else {
-      mobile = true;
-    }
+  function stroke(color, angle) {
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, angle);
+    ctx.strokeStyle = color;
+    ctx.stroke();
   }
+}
 
-  function calcScrollPct() {
-    var top = $window.scrollTop(),
-        docH = $(document).height(),
-        winH = $window.height(),
-        pct = Math.ceil((top / (docH - winH)) * 10000) / 10000;
-    return pct;
+function showToTop(show) {
+  if (show === toTopShown) return;
+  toTopShown = show;
+  if (show) {
+    toTop.style.display = "block";
+    toTop.animate([{ opacity: 0 }, { opacity: 1 }], 600);
+  } else {
+    toTop.animate([{ opacity: 1 }, { opacity: 0 }], 300).onfinish = () => {
+      if (!toTopShown) toTop.style.display = "none";
+    };
   }
-
-  $.fn.initCanvas = function() {
-    var _this = $(this),
-        canvas = document.createElement('canvas');
-
-    if (canvas.getContext) {
-      var ctx = canvas.getContext('2d'),
-          options = {
-            lineWidth: 2,
-            rotate: 0,
-            size: _this.height(),
-            colorProgress: '#d4a259',
-            colorBackground: '#eee'
-          },
-          perc = calcScrollPct();
-      _this.find('canvas').remove();
-      if (perc < 0.1 && _this.css('opacity') !== 0) {
-        _this.stop().fadeOut(300);
-      } else if (perc >= 0.1) {
-        _this.stop().fadeIn(600);
-        _this.append(canvas);
-        canvas.width = canvas.height = options.size;
-        ctx.translate(options.size / 2, options.size / 2);
-        ctx.rotate((-1 / 2 + options.rotate / 180) * Math.PI);
-        drawCircle(options.colorProgress, options.colorBackground, options.lineWidth);
-      }
-    }
-
-    function drawCircle(colorProgress, colorBackground, lineWidth) {
-      ctx.clearRect(-(options.size) / 2, -(options.size) / 2, options.size, options.size);
-      ctx.lineWidth = lineWidth;
-      ctx.lineCap = 'round';
-      // Background circle
-      ctx.beginPath();
-      ctx.arc(0, 0, (options.size - lineWidth) / 2, 0, Math.PI * 2, false);
-      ctx.strokeStyle = colorBackground;
-      ctx.stroke();
-      ctx.closePath();
-      // Progress circle
-      ctx.beginPath();
-      ctx.arc(0, 0, (options.size - lineWidth) / 2, 0, (Math.PI * 2) * perc, false);
-      ctx.strokeStyle = colorProgress;
-      ctx.stroke();
-      ctx.closePath();
-    }
-  };
-
-}(jQuery));
+}

@@ -16,11 +16,8 @@ post_class: post-template
                 <h1 class="post-title">{{ page.title }}</h1>
                 {% if page.tags.size > 0 %}
                 <div class="post-tags">
-                    {% for tag in page.tags %} {% if forloop.index == page.tags.size %}
-                    <a href='{{ site.baseurl }}tag/{{ tag | downcase | replace: ' ', '- ' }}/'>{{ tag | camelcase }}</a>
-                    {% else %}
-                    <a href='{{ site.baseurl }}tag/{{ tag | downcase | replace: ' ', '- ' }}/'>{{ tag | camelcase }}</a>
-                    {% endif %}
+                    {% for tag in page.tags %}
+                    <a href='{{ site.baseurl }}/tag/{{ tag | downcase | replace: ' ', '-' }}/'>{{ tag | camelcase }}</a>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -44,8 +41,10 @@ post_class: post-template
             <footer class="post-footer">
                 <div class="post-share">
                     <span class="post-share-title">Share:</span>
-                    <a target="_blank" href="https://twitter.com/share?text={{ page.title | url_encode }}&amp;url={{ site.production_url }}{{ page.url | remove_first: '/' }}">Twitter</a>
-                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u={{ site.production_url }}{{ page.url | remove_first: '/' }}">Facebook</a>
+                    {% assign share_url = page.url | absolute_url %}
+                    <a target="_blank" href="https://bsky.app/intent/compose?text={{ page.title | append: ' ' | append: share_url | url_encode }}">Bluesky</a>
+                    <a target="_blank" href="https://x.com/intent/post?text={{ page.title | url_encode }}&amp;url={{ share_url | url_encode }}">X</a>
+                    <a target="_blank" href="https://www.facebook.com/sharer/sharer.php?u={{ share_url | url_encode }}">Facebook</a>
                 </div><!-- .share-post -->
             </footer>
             {% include disqus.html %}
@@ -113,7 +112,7 @@ post_class: post-template
             <h2 class="tagcloud-title">Tags</h2>
             <div class="tag-links">
                 {% for tag in sortedTags %}
-                <a href='{{ site.production_url }}tag/{{ tag | downcase | replace: ' ', '- ' }}/'>{{ tag | camelcase }}</a>
+                <a href='{{ site.baseurl }}/tag/{{ tag | downcase | replace: ' ', '-' }}/'>{{ tag | camelcase }}</a>
                 {% endfor %}
             </div><!-- .tag-links -->
         </section><!-- .tagcloud -->
